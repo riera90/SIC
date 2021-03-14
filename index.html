@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Image Clasification</title>
+    </head>
+    <body onload="initialize()">
+        <div id="fileListBox" style="width: 20%; float: left;">
+            <h5>Loaded files</h5>
+            <ul id="fileList" style="border-color: black; border-width: 1px; border-style: solid;"></ul>
+            <input type="file" id="loadFileButton" accept="image/*" name="files" multiple onchange="updateFileListCallback()"><br>
+            <button onclick="exportTags()">Export</button> <a id="downloadLink" href=""></a>
+        </div>
+        <div id="selectedFileBoxHolder" style="width: 100%; float: rigth;">
+            <div id="selectedFileBox" style="width: 500px; float: left;">
+                <img id="selectedImage" src="" alt="" style="width: 500px;"></select>
+            </div>
+            <div id="selectedImageTagHolder" style="width: 200px; float: left;">
+                <select id="selectedImageTag" name="tag" onchange="selectedImageTagCallback()"></select>
+            </div>
+        </div>
+    </body>
+    <script>
+        let files = new Array();
+        let tags = new Array();
+        let imgIndex = 0;
+        let tagOptions = ['grieta', 'no_grieta'];
+        let textFile = null;
+
+        function selectedImageTagCallback() {
+            tags[imgIndex] = document.getElementById('selectedImageTag').value;
+        }
+
+        function updateFileListCallback() {
+            imgIndex = 0;
+            files = new Array();
+            tags = new Array();
+            for(let i = 0; i < document.getElementById('loadFileButton')['files'].length; i++){
+                files.push(document.getElementById('loadFileButton')['files'][i])
+                var li = document.createElement('li');
+                li.appendChild(document.createTextNode(document.getElementById('loadFileButton')['files'][i]['name']));
+                li.setAttribute("onClick", "selectImageFromListCallback("+i.toString()+")");
+                document.getElementById('fileList').appendChild(li);
+                tags.push(null);
+            }
+            showImage(imgIndex);
+        }
+
+        function selectImageFromListCallback(index) {
+            imgIndex = index;
+            showImage(index);
+            setImageSelectorValue(index);
+        }
+
+        function showImage(index) {
+            var oFReader = new FileReader();
+            oFReader.readAsDataURL(files[index]);
+            oFReader.onload = function (oFREvent) {
+                document.getElementById("selectedImage").src = oFREvent.target.result;
+            };
+        };
+
+        function setImageSelectorValue(index) {
+            document.getElementById('selectedImageTag').value = tags[index]
+        }
+
+        function initialize(){
+            let selector = document.getElementById('selectedImageTag');
+            var option = document.createElement('option');
+            option.value = null
+            option.innerHTML = null;
+            selector.appendChild(option);
+            for (let i = 0; i < tagOptions.length; i++){
+                var option = document.createElement('option');
+                option.value = tagOptions[i];
+                option.innerHTML = tagOptions[i];
+                console.log(tagOptions[i]);
+                console.log(option);
+                selector.appendChild(option);
+            }
+        }
+
+        function exportTags(){
+            let data = "";
+            for (let i = 0; i < files.length; i++)
+                if (tags[i] != null && files[i]!=null)
+                    data += tags[i]+"_|_"+files[i]['name']+"\n";
+            textFile = makeTextFile(data);
+            downloadLink = document.getElementById('downloadLink');
+            downloadLink.innerHTML = "download";
+            downloadLink.href = textFile;
+        }
+
+        function makeTextFile(text) {
+            var data = new Blob([text], {type: 'text/plain'});
+            if (textFile !== null)
+                window.URL.revokeObjectURL(textFile);
+            return window.URL.createObjectURL(data);
+        };
+    </script>
+</html>
